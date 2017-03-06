@@ -20,7 +20,7 @@ func getProcesses() string {
 	var output_string string
 
 	for _, process := range processes {
-		output_string += fmt.Sprintf("%d - %s: Running for: %s, PPID:[%d]\n", process.Pid(), process.Executable(), processDuration(process), process.PPid())
+		output_string += fmt.Sprintf("\n%d - %s: \n - Running for: %s \n - PPID:[%d]\n", process.Pid(), process.Executable(), processDuration(process), process.PPid())
 	}
 
 	return output_string
@@ -39,7 +39,7 @@ func main() {
 
 	MainWindow{
 		Title:   "Application Stats",
-		MinSize: Size{500, 300},
+		MinSize: Size{300, 600},
 		Layout:  VBox{},
 		Children: []Widget{
 			HSplitter{
