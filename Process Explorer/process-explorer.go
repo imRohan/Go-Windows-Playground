@@ -20,7 +20,7 @@ func getProcesses() string {
 	var output_string string
 
 	for _, process := range processes {
-		output_string += fmt.Sprintf("Process Name: %s, Time Duration: %s \n\n", process.Executable(), processDuration(process))
+		output_string += fmt.Sprintf("%d - %s: Running for: %s, PPID:[%d]\n", process.Pid(), process.Executable(), processDuration(process), process.PPid())
 	}
 
 	return output_string
@@ -48,8 +48,9 @@ func main() {
 				},
 			},
 			PushButton{
-				Text: "Refresh",
+				Text: "Get Data",
 				OnClicked: func() {
+					applications.SetText("")
 					for _, applicationString := range strings.Split(getProcesses(), "\n") {
 						applications.AppendText(applicationString + "\r\n")
 					}
