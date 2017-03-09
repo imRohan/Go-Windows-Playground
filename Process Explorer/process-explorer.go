@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	defaultProcessDuration = "2562047h47m16.854775807s"
+)
+
 func getProcesses(defaultProcesses bool) string {
 	processes, err := ps.Processes()
 
@@ -22,10 +26,10 @@ func getProcesses(defaultProcesses bool) string {
 
 	for _, process := range processes {
 		duration := processDuration(process)
-		if defaultProcesses && duration != "2562047h47m16.854775807s" {
-			output_string += fmt.Sprintf("\n%d - %s: \n - Running for: %s \n - PPID:[%d]\n", process.Pid(), process.Executable(), duration, process.PPid())
+		if defaultProcesses && duration != defaultProcessDuration{
+						output_string += fmt.Sprintf("\n%s: \n - Running for: %s \n - PID:[%d] \n - PPID:[%d]\n", process.Executable(), duration, process.Pid(), process.PPid())
 		} else if !defaultProcesses {
-			output_string += fmt.Sprintf("\n%d - %s: \n - Running for: %s \n - PPID:[%d]\n", process.Pid(), process.Executable(), duration, process.PPid())
+						output_string += fmt.Sprintf("\n%s: \n - Running for: %s \n - PID:[%d] \n - PPID:[%d]\n", process.Executable(), duration, process.Pid(), process.PPid())
 		}
 	}
 
@@ -64,8 +68,8 @@ func main() {
 						Checked:  false,
 						OnCheckStateChanged: func() {
 							showDefaultProcesses = !showDefaultProcesses
-							checkboxOutput := fmt.Sprintf("Hide System Processes: %s", strconv.FormatBool(showDefaultProcesses))
-							applications.SetText(checkboxOutput)
+							checkboxOutput := fmt.Sprintf("Hide System Processes: %s \n", strconv.FormatBool(showDefaultProcesses))
+							applications.AppendText(checkboxOutput)
 						},
 					},
 					PushButton{
