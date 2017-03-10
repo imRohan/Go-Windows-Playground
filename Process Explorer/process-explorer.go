@@ -15,25 +15,28 @@ const (
 	defaultProcessDuration = "2562047h47m16.854775807s"
 )
 
-func getProcesses(defaultProcesses bool) string {
+func getProcesses(defaultProcesses bool, searchString string) string {
 	processes, err := ps.Processes()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var output_string string
+	var outputString string
 
 	for _, process := range processes {
 		duration := processDuration(process)
-		if defaultProcesses && duration != defaultProcessDuration{
-						output_string += fmt.Sprintf("\n%s: \n - Running for: %s \n - PID:[%d] \n - PPID:[%d]\n", process.Executable(), duration, process.Pid(), process.PPid())
-		} else if !defaultProcesses {
-						output_string += fmt.Sprintf("\n%s: \n - Running for: %s \n - PID:[%d] \n - PPID:[%d]\n", process.Executable(), duration, process.Pid(), process.PPid())
+		processName := strings.Split(process.Executable(), ".exe")[0]
+		processPID := process.Pid()
+		if !defaultProcesses || defaultProcesses && duration != defaultProcessDuration {
+			if len(searchString) == 0 || len(searchString) != 0 && processName == searchString{
+				outputFormat := fmt.Sprintf("\n%s: \n - Running for: %s \n - PID:[%d] \n - PPID:[%d]\n", processName, duration, processPID, process.PPid())
+				outputString += outputFormat
+			}
 		}
 	}
 
-	return output_string
+	return outputString
 }
 
 func processDuration(process ps.Process) string {
@@ -45,21 +48,16 @@ func processDuration(process ps.Process) string {
 
 func main() {
 
-	var applications *walk.TextEdit
+	var processWindow, searchField *walk.TextEdit
 	var toggleDefaultsCheckBox *walk.CheckBox
 	showDefaultProcesses := false
+	searchFieldString := ""
 
 	MainWindow{
 		Title:   "Application Stats",
 		MinSize: Size{300, 600},
 		Layout:  VBox{},
 		Children: []Widget{
-			HSplitter{
-				MinSize: Size{300, 570},
-				Children: []Widget{
-					TextEdit{AssignTo: &applications, ReadOnly: true},
-				},
-			},
 			HSplitter{
 				Children: []Widget{
 					CheckBox{
@@ -68,16 +66,42 @@ func main() {
 						Checked:  false,
 						OnCheckStateChanged: func() {
 							showDefaultProcesses = !showDefaultProcesses
-							checkboxOutput := fmt.Sprintf("Hide System Processes: %s \n", strconv.FormatBool(showDefaultProcesses))
-							applications.AppendText(checkboxOutput)
+							checkboxValue := strconv.FormatBool(showDefaultProcesses)
+							checkboxOutput := fmt.Sprintf("Hide System Processes: %s \n", checkboxValue)
+							processWindow.AppendText(checkboxOutput)
 						},
 					},
+					TextEdit{
+						AssignTo: &searchField,
+					},
+					PushButton{
+						Text: "Filter",
+						OnClicked: func() {
+							processWindow.SetText("")
+							searchFieldString = searchField.Text()
+							returnedProcesses := getProcesses(showDefaultProcesses, searchFieldString)
+							for _, applicationString := range strings.Split(returnedProcesses, "\n") {
+								processWindow.AppendText(applicationString + "\r\n")
+							}
+						},
+					},
+				},
+			},
+			HSplitter{
+				MinSize: Size{300, 570},
+				Children: []Widget{
+					TextEdit{AssignTo: &processWindow, ReadOnly: true},
+				},
+			},
+			HSplitter{
+				Children: []Widget{
 					PushButton{
 						Text: "Get Data",
 						OnClicked: func() {
-							applications.SetText("")
-							for _, applicationString := range strings.Split(getProcesses(showDefaultProcesses), "\n") {
-								applications.AppendText(applicationString + "\r\n")
+							processWindow.SetText("")
+							returnedProcesses := getProcesses(showDefaultProcesses, "")
+							for _, applicationString := range strings.Split(returnedProcesses, "\n") {
+								processWindow.AppendText(applicationString + "\r\n")
 							}
 						},
 					},
