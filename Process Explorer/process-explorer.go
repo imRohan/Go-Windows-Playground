@@ -59,9 +59,9 @@ func outputToProcessWindow(processWindow *walk.TextEdit, returnedProcesses []Pro
 	for _, singleProcess := range returnedProcesses {
 		name := singleProcess.name
 		duration := singleProcess.duration
-    timeString := durationSplit(duration)
+		timeString := durationSplit(duration)
 		pid := singleProcess.pid
-		outputString := fmt.Sprintf("%s - %s (%d) \r",timeString, name, pid)
+		outputString := fmt.Sprintf("%s - %s (%d) \r", timeString, name, pid)
 		for _, applicationString := range strings.Split(outputString, "\n") {
 			processWindow.AppendText(applicationString + "\r\n")
 		}
@@ -69,8 +69,26 @@ func outputToProcessWindow(processWindow *walk.TextEdit, returnedProcesses []Pro
 }
 
 func durationSplit(duration time.Duration) string {
-  durationString := duration.String()
-  return durationString
+	durationString := duration.String()
+	splitM := strings.Split(durationString, "m")
+	splitH := strings.Split(string(splitM[0]), "h")
+	output := ""
+	if len(splitH) == 2 {
+		h := string(splitH[0])
+		m := string(splitH[1])
+		s := string(splitM[1])
+		output = fmt.Sprintf("%s:%s:%s", h, m, s[0:2])
+	} else {
+		if len(splitM) == 2 {
+			m := string(splitH[0])
+			s := string(splitM[1])
+			output = fmt.Sprintf("00:%s:%s", m, s[0:2])
+		} else {
+			s := string(splitM[0])
+			output = fmt.Sprintf("00:00:%s", s[0:1])
+		}
+	}
+	return output
 }
 
 func main() {
