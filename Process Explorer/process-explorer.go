@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+  "github.com/satori/go.uuid"
 )
 
 const (
@@ -20,6 +21,7 @@ type Process struct {
 	duration time.Duration
 	pid      int
 	ppid     int
+  uuid     uuid.UUID
 }
 
 func getProcesses(defaultProcesses bool, searchString string) []Process {
@@ -36,9 +38,10 @@ func getProcesses(defaultProcesses bool, searchString string) []Process {
 		name := strings.Split(process.Executable(), ".exe")[0]
 		pid := process.Pid()
 		ppid := process.PPid()
+    uuid := uuid.NewV1()
 		if !defaultProcesses || defaultProcesses && duration.String() != defaultProcessDuration {
 			if len(searchString) == 0 || len(searchString) != 0 && name == searchString {
-				currentProcess := Process{name, duration, pid, ppid}
+				currentProcess := Process{name, duration, pid, ppid, uuid}
 				output = append(output, currentProcess)
 			}
 		}
@@ -61,7 +64,8 @@ func outputToProcessWindow(processWindow *walk.TextEdit, returnedProcesses []Pro
 		duration := singleProcess.duration
 		timeString := durationSplit(duration)
 		pid := singleProcess.pid
-		outputString := fmt.Sprintf("%s - %s (%d) \r", timeString, name, pid)
+    uuid := singleProcess.uuid
+		outputString := fmt.Sprintf("%s - %s (%d) [%s] \r", timeString, name, pid, uuid)
 		for _, applicationString := range strings.Split(outputString, "\n") {
 			processWindow.AppendText(applicationString + "\r\n")
 		}
